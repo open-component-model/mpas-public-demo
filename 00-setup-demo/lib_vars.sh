@@ -5,6 +5,7 @@
 
 PRIVATE_REPO_NAME=ocm-applications
 SIGNING_KEY_NAME=ocm-signing
+MPAS_VERSION="${MPAS_VERSION:-0.0.1}"
 
 SSH_KEY_NAME=ocm-private-demo-key
 SSH_KEY_PATH=$HOME/.ssh/$SSH_KEY_NAME
@@ -13,7 +14,7 @@ HOSTS=(gitea.ocm.dev gitea-ssh.gitea podinfo.ocm.dev weave-gitops.ocm.dev)
 
 os=$(uname -s)
 
-tools=(helm flux kind jq kubectl ocm mkcert tea git curl docker gzip)
+tools=(helm flux kind jq kubectl ocm mkcert tea git curl docker gzip mpas)
 
 images=(
 ghcr.io/phoban01/podinfo:6.3.5-static
@@ -97,3 +98,4 @@ gzip_mac_instructions="brew install gzip"
 ocm_mac_instructions="brew install open-component-model/tap/ocm"
 mkcert_mac_instructions="brew install mkcert"
 tea_mac_instructions="brew tap gitea/tap https://gitea.com/gitea/homebrew-gitea && brew install tea"
+mpas_mac_instructions="curl -L https://github.com/open-component-model/MPAS/releases/download/v${MPAS_VERSION}/mpas_${MPAS_VERSION}_darwin_amd64.tar.gz | tar xz && mv mpas /usr/local/bin"

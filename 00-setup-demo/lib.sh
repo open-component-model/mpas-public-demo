@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # libary functions
-# Version: v1.0.0
-# Author: Piaras Hoban <piaras@weave.works>
+# Version: v2.0.0
+# Author: Piaras Hoban <piaras@weave.works> and Gergely Brautigam <gergely@weave.works>
 
 source ./lib_vars.sh
 
@@ -22,14 +22,14 @@ function create-cluster {
 function add-hosts {
     hosts=(gitea.ocm.dev gitea-ssh.gitea podinfo.ocm.dev weave-gitops.ocm.dev ci.ocm.dev events.ci.ocm.dev)
     for host in "${hosts[@]}"; do
-        if ! grep -qF $host /etc/hosts; then
+        if ! grep -qF "$host" /etc/hosts; then
           echo "127.0.0.1        $host" | sudo tee -a /etc/hosts >/dev/null
         fi
     done
 }
 
 function wait-for-endpoint {
-    until $(curl --output /dev/null --silent --fail $1); do
+    until curl --output /dev/null --silent --fail "$1"; do
         sleep 0.1
     done
 }
@@ -37,12 +37,12 @@ function wait-for-endpoint {
 function configure-tls {
     mkdir -p ./certs && rm -f ./certs/*.pem
     mkcert -install 2>/dev/null
-    mkcert -cert-file=./certs/cert.pem -key-file=./certs/key.pem gitea.ocm.dev weave-gitops.ocm.dev podinfo.ocm.dev ci.ocm.dev events.ci.ocm.dev
+    mkcert -cert-file=./certs/cert.pem -key-file=./certs/key.pem gitea.ocm.dev weave-gitops.ocm.dev podinfo.ocm.dev ci.ocm.dev events.ci.ocm.dev registry.ocm-system.svc.cluster.local
 }
 
 function configure-signing-keys {
     mkdir -p ./signing-keys && rm -f ./signing-keys/*.rsa.*
-    ocm create rsakeypair ./signing-keys/$SIGNING_KEY_NAME.rsa.key ./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    ocm create rsakeypair ./signing-keys/"$SIGNING_KEY_NAME".rsa.key ./signing-keys/"$SIGNING_KEY_NAME".rsa.pub
 }
 
 function deploy-gitea {
@@ -54,24 +54,64 @@ function deploy-gitea {
 }
 
 function create-weave-gitops-component {
-    cd weave-gitops/
-    make build
-    make sign
-    make push
-    cd ../
+    (
+        cd weave-gitops/ || return
+        make build
+        make sign
+        make push
+    )
+}
+
+function create-registry-certificate-secrets {
+    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    # pre-create the project namespace so we can apply the certificate secrets immediately.
+    # this is to make it easy on us later not having to patch anything.
+    declare -a namespaces=("ocm-system" "mpas-system" "mpas-sample-project")
+    for namespace in "${namespaces[@]}"
+    do
+        # ignore if already exists
+        kubectl create namespace "${namespace}" || true
+        kubectl create secret generic \
+          -n "${namespace}" registry-certs \
+          --from-file=caFile="${MKCERT_CA}" \
+          --from-file=certFile="./certs/cert.pem" \
+          --from-file=keyFile="./certs/key.pem"
+    done
+}
+
+function deploy-mpas-controllers {
+    TOKEN_REQ=$(curl "https://gitea.ocm.dev/api/v1/users/ocm-admin/tokens" \
+        --request POST \
+        --header 'Content-Type: application/json' \
+        --user "ocm-admin:password" \
+        --data '{ "name": "ocm-admin-token", "scopes": [ "all" ] }')
+
+    TOKEN=$(echo "$TOKEN_REQ" | jq -r '.sha1')
+
+    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    # add in the certificates for the controllers
+    GITEA_TOKEN="${TOKEN}" mpas bootstrap gitea \
+        --owner ocm-admin \
+        --repository mpas-test-project \
+        --personal \
+        --hostname gitea.ocm.dev \
+        --certificate-authority "${MKCERT_CA}" \
+        --client-certificate ./certs/cert.pem \
+        --client-key ./certs/key.pem
 }
 
 function deploy-ocm-controller {
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
-    TMPFILE=$(mktemp)
-    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > $TMPFILE
-    kubectl create namespace ocm-system
-    kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
-    kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt=$TMPFILE
-    kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
-    kubectl apply -f ./manifests/ocm.yaml
-    kubectl apply -f ./manifests/replication.yaml
-    rm $TMPFILE
+    echo "skip because it will be installed by mpas bootstrap"
+    # MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    # TMPFILE=$(mktemp)
+    # cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
+    # kubectl create namespace ocm-system || true
+    # kubectl create secret -n ocm-system generic ocm-signing --from-file="$SIGNING_KEY_NAME"=./signing-keys/"$SIGNING_KEY_NAME".rsa.pub
+    # kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
+    # kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
+    # kubectl apply -f ./manifests/ocm.yaml
+    # kubectl apply -f ./manifests/replication.yaml
+    # rm "$TMPFILE"
 }
 
 function deploy-ingress {

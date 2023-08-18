@@ -1,6 +1,6 @@
 [![REUSE status](https://api.reuse.software/badge/github.com/open-component-model/demo-secure-delivery)](https://api.reuse.software/info/github.com/open-component-model/demo-secure-delivery)
 
-# Secure software delivery with Flux and Open Component Model
+# MPAS with Flux and Open Component Model
 
 ## Fully guided walkthrough
 
