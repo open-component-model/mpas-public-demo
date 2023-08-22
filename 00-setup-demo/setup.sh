@@ -65,13 +65,10 @@ p "deploying ingress"
 deploy-ingress
 
 p "create registry certificate secrets"
-create-registry-certificate-secrets
+#create-registry-certificate-secrets
 
 p "deploying ocm-controller"
 deploy-ocm-controller
-
-p "deploying mpas controllers"
-deploy-mpas-controllers
 
 p "configuring gitea"
 configure-gitea
@@ -93,6 +90,9 @@ init-component-repository
 
 p "bootstrapping flux"
 bootstrap-flux
+
+p "deploying mpas controllers"
+deploy-mpas-controllers
 
 p "create webhook & receiver"
 create-webhook

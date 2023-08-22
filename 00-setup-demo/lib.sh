@@ -79,6 +79,8 @@ function create-registry-certificate-secrets {
     done
 }
 
+# bootstrap will generate a certificate for the registry. Since the user itself doesn't care about it
+# we can ignore this secret for the rest of the components.
 function deploy-mpas-controllers {
     TOKEN_REQ=$(curl "https://gitea.ocm.dev/api/v1/users/ocm-admin/tokens" \
         --request POST \
@@ -93,11 +95,10 @@ function deploy-mpas-controllers {
     GITEA_TOKEN="${TOKEN}" mpas bootstrap gitea \
         --owner ocm-admin \
         --repository mpas-test-project \
+        --registry ghcr.io/skarlso/mpas-bootstrap \
         --personal \
-        --hostname gitea.ocm.dev \
-        --certificate-authority "${MKCERT_CA}" \
-        --client-certificate ./certs/cert.pem \
-        --client-key ./certs/key.pem
+        --components ocm-controller,git-controller,replication-controller,mpas-project-controller,mpas-product-controller \
+        --hostname gitea.ocm.dev
 }
 
 function deploy-ocm-controller {
@@ -105,10 +106,10 @@ function deploy-ocm-controller {
     # MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
     # TMPFILE=$(mktemp)
     # cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
-    # kubectl create namespace ocm-system || true
+    kubectl create namespace ocm-system || true
     # kubectl create secret -n ocm-system generic ocm-signing --from-file="$SIGNING_KEY_NAME"=./signing-keys/"$SIGNING_KEY_NAME".rsa.pub
     # kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
-    # kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
+    kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
     # kubectl apply -f ./manifests/ocm.yaml
     # kubectl apply -f ./manifests/replication.yaml
     # rm "$TMPFILE"
@@ -125,7 +126,7 @@ function deploy-ingress {
 function deploy-tekton {
     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
     TMPFILE=$(mktemp)
-    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > $TMPFILE
+    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create ns tekton-pipelines
     kubectl create ns tekton-pipelines-resolvers
 
