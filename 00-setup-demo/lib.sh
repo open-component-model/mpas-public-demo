@@ -42,7 +42,7 @@ function configure-tls {
 
 function configure-signing-keys {
     mkdir -p ./signing-keys && rm -f ./signing-keys/*.rsa.*
-    ocm create rsakeypair ./signing-keys/"$SIGNING_KEY_NAME".rsa.key ./signing-keys/"$SIGNING_KEY_NAME".rsa.pub
+    ocm create rsakeypair ./signing-keys/$SIGNING_KEY_NAME.rsa.key ./signing-keys/$SIGNING_KEY_NAME.rsa.pub
 }
 
 function deploy-gitea {
@@ -72,7 +72,7 @@ function create-registry-certificate-secrets {
         # ignore if already exists
         kubectl create namespace "${namespace}" || true
         kubectl create secret generic \
-          -n "${namespace}" registry-certs \
+          -n "${namespace}" ocm-registry-tls-certs \
           --from-file=caFile="${MKCERT_CA}" \
           --from-file=certFile="./certs/cert.pem" \
           --from-file=keyFile="./certs/key.pem"
@@ -86,33 +86,29 @@ function deploy-mpas-controllers {
         --request POST \
         --header 'Content-Type: application/json' \
         --user "ocm-admin:password" \
-        --data '{ "name": "ocm-admin-token", "scopes": [ "all" ] }')
+        --data '{ "name": "mpas-deploy-token-2w", "scopes": [ "all" ] }')
 
     TOKEN=$(echo "$TOKEN_REQ" | jq -r '.sha1')
-
     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
     # add in the certificates for the controllers
     GITEA_TOKEN="${TOKEN}" mpas bootstrap gitea \
-        --owner ocm-admin \
-        --repository mpas-test-project \
+        --owner software-consumer \
+        --repository "${PRIVATE_REPO_NAME}" \
         --registry ghcr.io/skarlso/mpas-bootstrap \
         --personal \
-        --components ocm-controller,git-controller,replication-controller,mpas-project-controller,mpas-product-controller \
-        --hostname gitea.ocm.dev
+        --hostname gitea.ocm.dev \
+        --ca-file "${MKCERT_CA}"
 }
 
-function deploy-ocm-controller {
+function setup-ocm-system-signing-keys {
     echo "skip because it will be installed by mpas bootstrap"
-    # MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
-    # TMPFILE=$(mktemp)
-    # cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
+    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    TMPFILE=$(mktemp)
+    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create namespace ocm-system || true
-    # kubectl create secret -n ocm-system generic ocm-signing --from-file="$SIGNING_KEY_NAME"=./signing-keys/"$SIGNING_KEY_NAME".rsa.pub
-    # kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
+    kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
     kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
-    # kubectl apply -f ./manifests/ocm.yaml
-    # kubectl apply -f ./manifests/replication.yaml
-    # rm "$TMPFILE"
 }
 
 function deploy-ingress {
@@ -201,16 +197,6 @@ function configure-gitea {
     docker tag ghcr.io/phoban01/podinfo:6.3.6-static gitea.ocm.dev/software-provider/podinfo:6.3.6-static
     docker push gitea.ocm.dev/software-provider/podinfo:6.3.5-static
     docker push gitea.ocm.dev/software-provider/podinfo:6.3.6-static
-}
-
-function init-repository {
-    rm -rf ./flux-repo/ && mkdir ./flux-repo
-    cp -R ./flux-repo-src/main-branch/. ./flux-repo
-    git -C ./flux-repo init
-    git -C ./flux-repo add .
-    git -C ./flux-repo commit -m "initialise repository"
-    git -C ./flux-repo remote add origin ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./flux-repo push origin --all
 }
 
 function init-component-repository {
@@ -336,18 +322,18 @@ function configure-ssh {
     sleep 5
 }
 
-function bootstrap-flux {
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
-    TMPFILE=$(mktemp)
-    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > $TMPFILE
-    kubectl create ns flux-system
-    kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt=$TMPFILE
-    flux create secret git -n flux-system flux-system \
-        --url ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git \
-        --private-key-file=$SSH_KEY_PATH
-    kubectl apply -f ./manifests/flux.yaml
-    kubectl apply -f ./flux-repo-src/main-branch/clusters/kind/flux-system/gotk-sync.yaml
-}
+# function bootstrap-flux {
+#     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+#     TMPFILE=$(mktemp)
+#     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > $TMPFILE
+#     kubectl create ns flux-system
+#     kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt=$TMPFILE
+#     flux create secret git -n flux-system flux-system \
+#         --url ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git \
+#         --private-key-file=$SSH_KEY_PATH
+#     kubectl apply -f ./manifests/flux.yaml
+#     kubectl apply -f ./flux-repo-src/main-branch/clusters/kind/flux-system/gotk-sync.yaml
+# }
 
 function cache-charts {
     CHART_DIR=./charts

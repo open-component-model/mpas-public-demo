@@ -65,16 +65,19 @@ p "deploying ingress"
 deploy-ingress
 
 p "create registry certificate secrets"
-#create-registry-certificate-secrets
+create-registry-certificate-secrets
 
-p "deploying ocm-controller"
-deploy-ocm-controller
+p "deploying ocm system signing keys"
+setup-ocm-system-signing-keys
 
 p "configuring gitea"
 configure-gitea
 
 p "configuring ssh"
 configure-ssh
+
+p "deploying mpas controllers"
+deploy-mpas-controllers
 
 p "deploy tekton"
 deploy-tekton
@@ -83,16 +86,7 @@ p "create weave gitops component"
 create-weave-gitops-component
 
 p "initialise repository"
-init-repository
-
-p "initialise repository"
 init-component-repository
-
-p "bootstrapping flux"
-bootstrap-flux
-
-p "deploying mpas controllers"
-deploy-mpas-controllers
 
 p "create webhook & receiver"
 create-webhook
