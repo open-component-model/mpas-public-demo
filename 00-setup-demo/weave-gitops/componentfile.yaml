@@ -11,7 +11,6 @@ resources:
   type: ociImage
   input:
     type: helm
-    version: 4.0.22
     path: weave-gitops-4.0.22.tgz
 - name: manifests
   type: dir

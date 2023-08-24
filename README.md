@@ -33,7 +33,7 @@ To deploy the demo environment execute the following:
 
 `make run`
 
-Once the environment has been created, login to Gitea using the following credentials:
+Once the environment has been created, log in to Gitea using the following credentials:
 
 ```
 username: ocm-admin
@@ -79,7 +79,7 @@ We can also view the running application at https://podinfo.ocm.dev
 ![configure](./docs/images/configure.png)
 
 The application can be configured using the parameters exposed in `values.yaml`. Now that podinfo is deployed we can tweak a few parameters, navigate to
-https://gitea.ocm.dev/software-consumer/ocm-applications/_edit/main/values.yaml
+https://gitea.ocm.dev/software-consumer/ocm-applications/_edit/main/components/values.yaml
 and add the following:
 
 ```yaml

@@ -29,16 +29,18 @@ function add-hosts {
 }
 
 function init-repository {
-    # Pull the remote consumer repository.
+    # If the folder already exists, it means it was a previous run.
+    # Clear it, and get a fresh copy of the flux components.
+    if [ -d "./flux-repo" ]; then
+        rm -fr ./flux-repo
+    fi
+
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git clone ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git ./flux-repo
 
     # Add components.
-    # rm -rf ./flux-repo/ && mkdir ./flux-repo
     cp -R ./flux-repo-src/main-branch/. ./flux-repo
-    # git -C ./flux-repo init
     git -C ./flux-repo add .
     git -C ./flux-repo commit -am "add component resources"
-    # git -C ./flux-repo remote add origin ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./flux-repo push origin --all
 }
 

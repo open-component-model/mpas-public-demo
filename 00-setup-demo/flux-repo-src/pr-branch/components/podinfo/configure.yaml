@@ -20,5 +20,5 @@ spec:
         kind: GitRepository
         name: flux-system
         namespace: flux-system
-      path: ./values.yaml
+      path: ./components/values.yaml
       subPath: podinfo
