@@ -85,7 +85,10 @@ deploy-tekton
 p "create weave gitops component"
 create-weave-gitops-component
 
-p "initialise repository"
+p "configure flux repository"
+init-repository
+
+p "initialise component repository"
 init-component-repository
 
 p "create webhook & receiver"
