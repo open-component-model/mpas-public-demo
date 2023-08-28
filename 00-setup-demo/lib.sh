@@ -42,6 +42,9 @@ function init-repository {
     git -C ./flux-repo add .
     git -C ./flux-repo commit -am "add component resources"
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./flux-repo push origin --all
+
+    # Kick flux to reconcile the repository and redeploy the source controller
+    flux reconcile source git flux-system
 }
 
 function wait-for-endpoint {
@@ -80,6 +83,8 @@ function create-weave-gitops-component {
 
 function create-registry-certificate-secrets {
     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    TMPFILE=$(mktemp)
+    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     # pre-create the project namespace so we can apply the certificate secrets immediately.
     # this is to make it easy on us later not having to patch anything.
     declare -a namespaces=("ocm-system" "mpas-system" "mpas-sample-project")
@@ -106,6 +111,8 @@ function deploy-mpas-controllers {
 
     TOKEN=$(echo "$TOKEN_REQ" | jq -r '.sha1')
     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    TMPFILE=$(mktemp)
+    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     # add in the certificates for the controllers
     GITEA_TOKEN="${TOKEN}" mpas bootstrap gitea \
         --owner software-consumer \
@@ -113,7 +120,7 @@ function deploy-mpas-controllers {
         --registry ghcr.io/skarlso/mpas-bootstrap \
         --personal \
         --hostname gitea.ocm.dev \
-        --ca-file "${MKCERT_CA}"
+        --ca-file "${TMPFILE}"
 }
 
 function setup-ocm-system-signing-keys {
@@ -122,8 +129,10 @@ function setup-ocm-system-signing-keys {
     TMPFILE=$(mktemp)
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create namespace ocm-system || true
+    kubectl create namespace flux-system || true
     kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
     kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
+    kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
     kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
 }
 
