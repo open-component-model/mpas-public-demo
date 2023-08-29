@@ -2,7 +2,7 @@ apiVersion: delivery.ocm.software/v1alpha1
 kind: ComponentSubscription
 metadata:
   name: podinfo-subscription
-  namespace: ocm-system
+  namespace: mpas-ocm-applications
 spec:
   interval: 30s
   component: ocm.software/demos/podinfo

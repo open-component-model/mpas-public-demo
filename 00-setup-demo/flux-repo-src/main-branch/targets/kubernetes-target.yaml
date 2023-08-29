@@ -1,0 +1,11 @@
+apiVersion: mpas.ocm.software/v1alpha1
+kind: Target
+metadata:
+  name: kubernetes-target
+  namespace: mpas-system
+  labels:
+    target.mpas.ocm.software/ingress-enabled: "true" # DO NOT CHANGE. expected by the component for target selection.
+spec:
+  type: kubernetes
+  access:
+    targetNamespace: default

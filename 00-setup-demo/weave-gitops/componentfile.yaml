@@ -24,3 +24,22 @@ resources:
     type: file
     path: src/ocm-ctrl/config.yaml
     compress: true
+- name: instructions
+  type: PlainText
+  input:
+    type: file
+    mediaType: text/markdown
+    path: ./src/README.md
+    compress: true
+- name: validation
+  type: validator.mpas.ocm.software
+  input:
+    type: file
+    path: ./src/validation.rego
+    compress: true
+- name: product-description
+  type: productdescription.mpas.ocm.software
+  input:
+    type: file
+    path: product_description.yaml
+    compress: true

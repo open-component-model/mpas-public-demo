@@ -1,0 +1,23 @@
+apiVersion: mpas.ocm.software/v1alpha1
+kind: Project
+metadata:
+  name: ocm-applications
+  namespace: mpas-system
+spec:
+  git:
+    commitTemplate:
+      email: ocm@ocm.software
+      message: Initializing Project repository
+      name: ocm-admin
+    credentials:
+      secretRef:
+        name: gitea-registry-credentials
+    defaultBranch: main
+    existingRepositoryPolicy: adopt
+    interval: 10m
+    owner: software-consumer
+    provider: gitea
+    visibility: public
+    domain: https://gitea.ocm.dev
+  interval: 1m
+  prune: true

@@ -97,6 +97,9 @@ create-webhook
 p "create pull request"
 create-pull-request
 
+p "initialise project infrastructure"
+init-project-infrastructure
+
 echo -e "
 Setup is complete!
 

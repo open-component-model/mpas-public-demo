@@ -47,6 +47,17 @@ function init-repository {
     flux reconcile source git flux-system
 }
 
+function init-project-infrastructure {
+    # Create the project repository.
+    # Create the project service account and add `docker-registry` as pull secret.
+
+    # TODO: Could this possibly be a tekton thing?
+    # Apply project file.
+    echo "initialising project instrastructure"
+    kubectl apply -f ./manifests/service_account.yaml
+    kubectl apply -f ./manifests/project.yaml
+}
+
 function wait-for-endpoint {
     until curl --output /dev/null --silent --fail "$1"; do
         sleep 0.1
@@ -87,7 +98,7 @@ function create-registry-certificate-secrets {
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     # pre-create the project namespace so we can apply the certificate secrets immediately.
     # this is to make it easy on us later not having to patch anything.
-    declare -a namespaces=("ocm-system" "mpas-system" "mpas-sample-project")
+    declare -a namespaces=("ocm-system" "mpas-system" "mpas-ocm-applications")
     for namespace in "${namespaces[@]}"
     do
         # ignore if already exists
@@ -130,7 +141,10 @@ function setup-ocm-system-signing-keys {
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create namespace ocm-system || true
     kubectl create namespace flux-system || true
+    kubectl create namespace mpas-ocm-applications || true
     kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    kubectl create secret -n mpas-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    kubectl create secret -n mpas-ocm-applications generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
     kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
     kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
     kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
@@ -212,8 +226,32 @@ function configure-gitea {
             --from-literal=username=ocm-admin \
             --from-literal=password=$TOKEN
 
+    kubectl create ns mpas-system || true
+    kubectl create secret -n mpas-system generic \
+        gitea-registry-credentials \
+            --from-literal=username=ocm-admin \
+            --from-literal=password=$TOKEN
+
+    kubectl create ns mpas-ocm-applications || true
+    kubectl create secret -n mpas-ocm-applications generic \
+        gitea-registry-credentials \
+            --from-literal=username=ocm-admin \
+            --from-literal=password=$TOKEN
+
     kubectl create secret -n default docker-registry \
         gitea-registry-credentials \
+            --docker-server=gitea.ocm.dev \
+            --docker-username=ocm-admin \
+            --docker-password=$TOKEN
+
+    kubectl create secret -n mpas-system docker-registry \
+        pull-creds \
+            --docker-server=gitea.ocm.dev \
+            --docker-username=ocm-admin \
+            --docker-password=$TOKEN
+
+    kubectl create secret -n mpas-ocm-applications docker-registry \
+        pull-creds \
             --docker-server=gitea.ocm.dev \
             --docker-username=ocm-admin \
             --docker-password=$TOKEN
@@ -346,19 +384,6 @@ function configure-ssh {
     kubectl port-forward -n gitea svc/gitea-ssh 2222:2222 &
     sleep 5
 }
-
-# function bootstrap-flux {
-#     MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
-#     TMPFILE=$(mktemp)
-#     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > $TMPFILE
-#     kubectl create ns flux-system
-#     kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt=$TMPFILE
-#     flux create secret git -n flux-system flux-system \
-#         --url ssh://git@gitea-ssh.gitea:2222/software-consumer/$PRIVATE_REPO_NAME.git \
-#         --private-key-file=$SSH_KEY_PATH
-#     kubectl apply -f ./manifests/flux.yaml
-#     kubectl apply -f ./flux-repo-src/main-branch/clusters/kind/flux-system/gotk-sync.yaml
-# }
 
 function cache-charts {
     CHART_DIR=./charts

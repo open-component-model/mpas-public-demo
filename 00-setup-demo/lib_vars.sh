@@ -3,7 +3,7 @@
 # Version: v1.0.0
 # Author: Piaras Hoban <piaras@weave.works>
 
-PRIVATE_REPO_NAME=ocm-applications
+PRIVATE_REPO_NAME=mpas-ocm-applications
 SIGNING_KEY_NAME=ocm-signing
 MPAS_VERSION="${MPAS_VERSION:-0.0.1}"
 
@@ -35,9 +35,6 @@ registry.k8s.io/kube-controller-manager:v1.27.1
 registry.k8s.io/kube-proxy:v1.27.1
 registry.k8s.io/kube-scheduler:v1.27.1
 docker.io/kindest/local-path-provisioner:v20230511-dc714da8
-ghcr.io/open-component-model/ocm-controller:v0.8.1
-ghcr.io/open-component-model/ocm-registry:v0.0.1-dev
-ghcr.io/phoban01/replication-controller:v0.2.4
 registry:2
 cgr.dev/chainguard/busybox
 docker.io/library/alpine:latest
@@ -67,9 +64,6 @@ registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230312-helm-chart-4.5.2-28
 registry.k8s.io/ingress-nginx/controller:v1.7.1
 registry.k8s.io/coredns/coredns:v1.10.1
 docker.io/kindest/local-path-provisioner:v20230511-dc714da8
-ghcr.io/open-component-model/ocm-registry:v0.0.1-dev
-ghcr.io/open-component-model/ocm-controller:v0.8.1
-ghcr.io/phoban01/replication-controller:v0.2.4
 registry:2
 cgr.dev/chainguard/busybox
 docker.io/library/alpine:latest
