@@ -417,9 +417,9 @@ function cache-manifests {
         flux install --components="source-controller,kustomize-controller" --export > ./manifests/flux.yaml
     fi
 
-    if [ ! -f ./manifests/ocm.yaml ];then
-        ocm controller install --dry-run > ./manifests/ocm.yaml
-    fi
+    # if [ ! -f ./manifests/ocm.yaml ];then
+    #     ocm controller install --dry-run > ./manifests/ocm.yaml
+    # fi
 }
 
 function install_tool {
