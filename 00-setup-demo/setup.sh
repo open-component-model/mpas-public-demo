@@ -49,9 +49,6 @@ if [ $MODE -eq 1 ]; then
     preload-images aws-demo
 fi
 
-p "caching manifests..."
-cache-manifests
-
 p "creating tls certs"
 configure-tls
 
@@ -94,11 +91,11 @@ init-component-repository
 p "create webhook & receiver"
 create-webhook
 
-p "create pull request"
-create-pull-request
-
 p "initialise project infrastructure"
 init-project-infrastructure
+
+p "create pull request"
+create-pull-request
 
 echo -e "
 Setup is complete!

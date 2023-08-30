@@ -48,14 +48,11 @@ function init-repository {
 }
 
 function init-project-infrastructure {
-    # Create the project repository.
-    # Create the project service account and add `docker-registry` as pull secret.
-
-    # TODO: Could this possibly be a tekton thing?
-    # Apply project file.
     echo "initialising project instrastructure"
     kubectl apply -f ./manifests/service_account.yaml
     kubectl apply -f ./manifests/project.yaml
+    echo "waiting for project to be Ready"
+    kubectl wait --for=condition=Ready=true Project/ocm-applications -n mpas-system --timeout=60s
 }
 
 function wait-for-endpoint {
@@ -406,20 +403,6 @@ function cache-charts {
         helm repo add gitea-charts https://dl.gitea.io/charts || true
         helm pull gitea-charts/gitea --untar=true --untardir=$CHART_DIR
     fi
-}
-
-function cache-manifests {
-    if [ ! -d ./manifests ];then
-        mkdir -p ./manifests
-    fi
-
-    if [ ! -f ./manifests/flux.yaml ];then
-        flux install --components="source-controller,kustomize-controller" --export > ./manifests/flux.yaml
-    fi
-
-    # if [ ! -f ./manifests/ocm.yaml ];then
-    #     ocm controller install --dry-run > ./manifests/ocm.yaml
-    # fi
 }
 
 function install_tool {

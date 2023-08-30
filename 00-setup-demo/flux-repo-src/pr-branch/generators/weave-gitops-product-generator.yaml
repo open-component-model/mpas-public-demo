@@ -1,0 +1,11 @@
+apiVersion: mpas.ocm.software/v1alpha1
+kind: ProductDeploymentGenerator
+metadata:
+  name: weave-gitops
+  namespace: mpas-ocm-applications
+spec:
+  interval: 1m
+  serviceAccountName: mpas-ocm-applications
+  subscriptionRef:
+    name: weave-gitops-subscription
+    namespace: mpas-ocm-applications

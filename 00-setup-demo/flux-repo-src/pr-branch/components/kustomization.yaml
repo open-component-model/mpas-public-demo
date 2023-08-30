@@ -1,9 +1,0 @@
-resources:
-  - "./podinfo/component_version.yaml"
-  - "./podinfo/configure.yaml"
-  - "./podinfo/deploy.yaml"
-  - "./podinfo/localize.yaml"
-  - "./weave-gitops/component_version.yaml"
-  - "./weave-gitops/configure.yaml"
-  - "./weave-gitops/deploy.yaml"
-  - "./weave-gitops/localize.yaml"
