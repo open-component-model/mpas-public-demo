@@ -91,11 +91,13 @@ init-component-repository
 p "create webhook & receiver"
 create-webhook
 
-p "initialise project infrastructure"
-init-project-infrastructure
-
+# It's important that this happens before the project starts to reconcile the repository because
+# it can quickly get out of date. The created PR won't be from main but that's fine.
 p "create pull request"
 create-pull-request
+
+p "initialise project infrastructure"
+init-project-infrastructure
 
 echo -e "
 Setup is complete!
