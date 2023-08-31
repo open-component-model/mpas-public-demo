@@ -287,7 +287,9 @@ function create-webhook {
     echo $TOKEN
     RECEIVER_TOKEN=$(head -c 12 /dev/urandom | shasum | cut -d ' ' -f1)
     kubectl -n flux-system create secret generic receiver-token --from-literal=token=$RECEIVER_TOKEN
+    kubectl -n mpas-system create secret generic receiver-token --from-literal=token=$RECEIVER_TOKEN
     kubectl apply -f ./manifests/webhook_receiver.yaml
+    kubectl apply -f ./manifests/webhook_receiver_mpas_system.yaml
 
     until [ ! -z $(kubectl get receiver gitea-receiver -n flux-system -ojsonpath="{.status.webhookPath}" | xargs) ]; do
         sleep 0.2
@@ -314,6 +316,33 @@ function create-webhook {
           ],
           "type": "gitea"
         }'
+
+    until [ ! -z $(kubectl get receiver mpas-gitea-receiver -n mpas-system -ojsonpath="{.status.webhookPath}" | xargs) ]; do
+        sleep 0.2
+    done;
+
+    WEB_HOOK_PATH=$(kubectl get receiver mpas-gitea-receiver -n mpas-system -ojsonpath="{.status.webhookPath}" | xargs)
+
+    wait-for-endpoint https://gitea.ocm.dev/api/v1/users/ocm-admin
+
+    curl --location --request POST "https://gitea.ocm.dev/api/v1/repos/software-consumer/$PRIVATE_REPO_NAME/hooks" \
+        --header "Content-Type: application/json" \
+        --header "Authorization: token $TOKEN" \
+        --data-raw '{
+          "active": true,
+          "branch_filter": "main",
+          "config": {
+            "content_type": "json",
+            "url": "http://webhook-receiver.flux-system'$WEB_HOOK_PATH'",
+            "http_method": "post",
+            "secret": "'$RECEIVER_TOKEN'"
+          },
+          "events": [
+            "push"
+          ],
+          "type": "gitea"
+        }'
+
 
     kubectl -n tekton-pipelines create secret generic ci-webhook --from-literal=secret=$RECEIVER_TOKEN
     kubectl apply -f ./tekton/webhook_rbac.yaml

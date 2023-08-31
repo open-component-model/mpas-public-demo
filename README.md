@@ -8,12 +8,12 @@
 
 This walkthrough deploys a full end-to-end pipeline demonstrating how OCM and Flux can be employed to deploy applications in air-gapped environments.
 
-The demo environment consists of Gitea, Tekton, Flux and the OCM controller.
+The demo environment consists of Gitea, Tekton, Flux and the MPAS controllers.
 Two Gitea organizations are created:
 - [software-provider](https://gitea.ocm.dev/software-provider)
 - [software-consumer](https://gitea.ocm.dev/software-consumer)
 
-The provider organization contains a repository which models the `podinfo` application. When a new release is created a Tekton pipeline will be triggered that builds the component and pushes it to the [software provider's OCI registry](https://gitea.ocm.dev/software-provider/-/packages).
+The provider organization contains a repository that models the `podinfo` application. When a new release is created a Tekton pipeline will be triggered that builds the component and pushes it to the [software provider's OCI registry](https://gitea.ocm.dev/software-provider/-/packages).
 
 ## Software Consumer
 
@@ -60,13 +60,26 @@ Once the release is published, navigate to https://ci.ocm.dev/#/namespaces/tekto
 
 When the release pipeline has been completed we can install the component. Navigate to https://gitea.ocm.dev/software-consumer/ocm-applications/pulls/1 and merge the pull request.
 
-#### 5. View the Weave GitOps Dashboard
+_Note_: If you see an error that the PR needs rebasing, you can ignore that.
 
-![weave-gitops](./docs/images/weave-gitops.png)
+#### 5. Merge the two created PRs
 
-With a minute or so Flux will reconcile the Weave GitOps component and the dashboard will be accessible at https://weave-gitops.ocm.dev. You can login with username: `admin` and password `password`.
+The two generators above will create two sets of PRs containing manifests that will further produce application-specific configuration objects. Like Configuration, Localization and FluxDeployer.
+These objects will be generated via the mpas-product-controller.
 
-#### 5. View the application
+![two-prs](./docs/images/two_pull_requests.png)
+
+After the two PRs are merged, give it a minute and the applications should be reconciled.
+
+Once things are done, the Weave-Gitops application should be accessible under https://weave-gitops.ocm.dev. You can log in with username: `admin` and password `password`.
+
+_Note_: It can take a little while because flux needs to reconcile the new repository content. Until then, it might error because it's looking for a values.yaml file in the GitRepository object.
+
+Once the two applications are merged, you should see two "products" under [products](https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/src/branch/main/products).
+
+![products](./docs/images/products.png)
+
+#### 6. View the application
 
 ![podinfo](./docs/images/application.png)
 
@@ -74,50 +87,71 @@ We can view the `podinfo` Helm release that's been deployed in the default names
 
 We can also view the running application at https://podinfo.ocm.dev
 
-#### 6. Apply configuration
+#### 7. Change configuration values
 
 ![configure](./docs/images/configure.png)
 
 The application can be configured using the parameters exposed in `values.yaml`. Now that podinfo is deployed we can tweak a few parameters, navigate to
-https://gitea.ocm.dev/software-consumer/ocm-applications/_edit/main/components/values.yaml
+https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/_edit/main/products/podinfo/values.yaml
 and add the following:
 
 ```yaml
 podinfo:
+  message: This is my updated message
   replicas: 2
-  message: "Hello Open Component Model!"
-  serviceAccountName: ocm-ops
-weave-gitops:
-  serviceAccountName: ocm-ops
+  serviceAccountName: default
 ```
+
+Commit the changes to the main branch and wait for it all to be reconciled back into the deployed application.
 
 #### 7. View the configured application
 
-![update](./docs/images/update.png)
+Once the controllers and objects finish updating, you should have two running pods and an updated message:
 
-The changes will soon be reconciled by Flux and visible at https://podinfo.ocm.dev. Note how the pod id changes now that we have 2 replicas of our application running.
+```
+kubectl get pods
+NAME                           READY   STATUS    RESTARTS   AGE
+podinfo-7fb6788b66-b5gml       1/1     Running   0          23s
+podinfo-7fb6788b66-xh7bq       1/1     Running   0          23s
+weave-gitops-db47485b8-6k4zb   1/1     Running   0          10m
+```
+
+Navigate to https://podinfo.ocm.dev to view the new message.
+
+![update](./docs/images/update.png)
 
 #### 8. Cut a new release
 
-Let's jump back to the provider repository and cut another release. This release will contain a new feature that changes the image displayed by the podinfo application. Follow the same process as before to create a release, bumping the version to `v1.1.0`.
+Let's jump back to the provider repository and cut another release. This release will contain a new feature that changes the image displayed by the podinfo application. Follow the same process as before to create a release, bumping the version to `v1.1.0`. Make sure to select the branch _`new-release`_ to apply the updated configuration data.
 
 #### 9. Verify the release
 
 Once the release is published, navigate to https://ci.ocm.dev/#/namespaces/tekton-pipelines/pipelineruns and follow the progress of the release automation.
 
-#### 10. Monitor the application update
+#### 10. Merge the new PR
+
+This update will trigger a new PR for the application reconciling a new version:
+
+![update pr](./docs/images/updated_pr.png)
+
+It contains an update to the values file since we changed that. Feel free to revert that, or merge as is. Either way, it
+should result in a reconciliation of the application.
+
+#### 11. Monitor the application update
 
 ![update-wego](./docs/images/update-wego.png)
 
 Jump back to https://weave-gitops.ocm.dev to view the rollout of the new release.
 
-#### 11. View the updated application
+#### 12. View the updated application
 
 ![update-ocm](./docs/images/update-ocm.png)
 
-Finally, navigate to https://podinfo.ocm.dev which now displays the OCM logo in place of the cuttlefish and the updated application version of 6.3.6
+Finally, navigate to https://podinfo.ocm.dev which now displays the OCM logo in place of the cuttlefish and the updated application version of 6.3.6.
 
 ### Conclusion
+
+TODO: update this
 
 By leveraging the capabilities of Gitea, Tekton, Flux, and the OCM controller, this demo showcases the seamless deployment of components and dependencies in a secure manner. The use of secure OCI registries and automated release pipelines ensures the integrity and reliability of the deployment process.
 

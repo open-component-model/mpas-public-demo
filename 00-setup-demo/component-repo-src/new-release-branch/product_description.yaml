@@ -9,7 +9,7 @@ spec:
     targetRoleName: ingress
     source:
       name: manifests
-      version: 1.0.0
+      version: 1.1.0
     localization:
       name: config
       version: 1.0.0
