@@ -31,6 +31,10 @@ Components:
 MPAS-flow:
 ![mpas-flow](./docs/images/mpas-flow.png)
 
+## Deployed products
+
+We are going to deploy two things. [podinfo](https://github.com/stefanprodan/podinfo) and [Weave-Gitops front-end](https://github.com/weaveworks/weave-gitops).
+
 ### Walkthrough
 
 Instructions are provided to guide you through the process of deploying the demo environment, cutting a release for "podinfo," verifying the release automation, installing the component, viewing the Weave GitOps dashboard, accessing the deployed application, applying configuration changes, monitoring the application update, and cutting a new release with updated features.
