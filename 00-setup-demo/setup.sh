@@ -96,9 +96,6 @@ create-webhook
 p "create pull request"
 create-pull-request
 
-p "initialise project infrastructure"
-init-project-infrastructure
-
 echo -e "
 Setup is complete!
 
@@ -106,6 +103,10 @@ You can access gitea at the following URL: https://gitea.ocm.dev
 
 Username: ocm-admin
 Password: password
+
+In order to kick off the process of creating the application and the project repository apply the following file:
+
+kubectl apply -f ./manifests/project.yaml
 "
 
 if [ "$OS" == "Darwin" ];then
