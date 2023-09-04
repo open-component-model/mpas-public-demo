@@ -23,6 +23,14 @@ The software consumer organization contains a repository named [ocm-applications
 
 Once this pull request is merged the Flux machinery will deploy the dependency `weave-gitops` and subsequently the `podinfo` component. The [weave-gitops dashboard](https://weave-gitops.ocm.dev) can be used to understand the state of the cluster.
 
+## Business entities
+
+Components:
+![mpas-component](./docs/images/mpas-components.png)
+
+MPAS-flow:
+![mpas-flow](./docs/images/mpas-flow.png)
+
 ### Walkthrough
 
 Instructions are provided to guide you through the process of deploying the demo environment, cutting a release for "podinfo," verifying the release automation, installing the component, viewing the Weave GitOps dashboard, accessing the deployed application, applying configuration changes, monitoring the application update, and cutting a new release with updated features.
