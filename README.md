@@ -151,9 +151,7 @@ Finally, navigate to https://podinfo.ocm.dev which now displays the OCM logo in 
 
 ### Conclusion
 
-TODO: update this
-
-By leveraging the capabilities of Gitea, Tekton, Flux, and the OCM controller, this demo showcases the seamless deployment of components and dependencies in a secure manner. The use of secure OCI registries and automated release pipelines ensures the integrity and reliability of the deployment process.
+By leveraging the capabilities of Gitea, Tekton, Flux, and the MPAS system controllers, this demo showcases the seamless deployment of components and dependencies in a secure manner. The use of secure OCI registries and automated release pipelines ensures the integrity and reliability of the deployment process.
 
 Users can easily set up the demo environment, cut releases, monitor release automation, view the Weave GitOps dashboard and observe the deployment and update of applications. We have presented a practical illustration of how OCM and Flux can be employed to facilitate the deployment and management of applications in air-gapped environments, offering a robust and efficient solution for secure software delivery.
 
