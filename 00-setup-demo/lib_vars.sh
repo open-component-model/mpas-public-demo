@@ -77,7 +77,7 @@ gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.24.0
-ghcr.io/phoban01/ocm:0.3.0-rc.2
+ghcr.io/open-component-model/ocm:0.3.0-rc.2
 )
 
 helm_mac_instructions="brew install helm"
