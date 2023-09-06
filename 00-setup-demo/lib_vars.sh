@@ -17,8 +17,8 @@ os=$(uname -s)
 tools=(helm flux kind jq kubectl ocm mkcert tea git curl docker gzip mpas)
 
 images=(
-ghcr.io/phoban01/podinfo:6.3.5-static
-ghcr.io/phoban01/podinfo:6.3.6-static
+ghcr.io/open-component-model/podinfo:6.3.5-static
+ghcr.io/open-component-model/podinfo:6.3.6-static
 ghcr.io/weaveworks/wego-app:v0.24.0
 ghcr.io/fluxcd/helm-controller:v0.33.0
 ghcr.io/fluxcd/kustomize-controller:v1.0.0-rc.3
@@ -48,12 +48,12 @@ gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.24.0
-ghcr.io/phoban01/ocm:0.3.0-rc.2
+ghcr.io/open-component-model/ocm:0.3.0-rc.2
 )
 
 preloadimages=(
-ghcr.io/phoban01/podinfo:6.3.5-static
-ghcr.io/phoban01/podinfo:6.3.6-static
+ghcr.io/open-component-model/podinfo:6.3.5-static
+ghcr.io/open-component-model/podinfo:6.3.6-static
 ghcr.io/weaveworks/wego-app:v0.24.0
 ghcr.io/fluxcd/helm-controller:v0.33.0
 ghcr.io/fluxcd/kustomize-controller:v1.0.0-rc.3
@@ -92,4 +92,4 @@ gzip_mac_instructions="brew install gzip"
 ocm_mac_instructions="brew install open-component-model/tap/ocm"
 mkcert_mac_instructions="brew install mkcert"
 tea_mac_instructions="brew tap gitea/tap https://gitea.com/gitea/homebrew-gitea && brew install tea"
-#mpas_mac_instructions="curl -L https://github.com/open-component-model/MPAS/releases/download/v${MPAS_VERSION}/mpas_${MPAS_VERSION}_darwin_amd64.tar.gz | tar xz && mv mpas /usr/local/bin"
+mpas_mac_instructions="curl -L https://github.com/open-component-model/MPAS/releases/download/v${MPAS_VERSION}/mpas_${MPAS_VERSION}_darwin_amd64.tar.gz | tar xz && mv mpas /usr/local/bin"
