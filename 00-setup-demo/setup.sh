@@ -106,7 +106,7 @@ Password: password
 
 In order to kick off the process of creating the application and the project repository apply the following file:
 
-kubectl apply -f ./manifests/project.yaml && kubectl wait --for=condition=Ready=true Project/ocm-applications -n mpas-system --timeout=60s
+kubectl apply -f 00-setup-demo/manifests/project.yaml && kubectl wait --for=condition=Ready=true Project/ocm-applications -n mpas-system --timeout=60s
 "
 
 if [ "$OS" == "Darwin" ];then
