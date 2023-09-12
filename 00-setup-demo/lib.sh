@@ -125,7 +125,6 @@ function deploy-mpas-controllers {
     GITEA_TOKEN="${TOKEN}" mpas bootstrap gitea \
         --owner software-consumer \
         --repository "${PRIVATE_REPO_NAME}" \
-        --registry ghcr.io/skarlso/mpas-bootstrap \
         --personal \
         --hostname gitea.ocm.dev \
         --ca-file "${TMPFILE}"
