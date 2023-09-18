@@ -369,10 +369,10 @@ function create-webhook {
 
 function create-pull-request {
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./flux-repo pull origin main --rebase=true
-    git -C ./flux-repo checkout -b ops-install-podinfo
+    git -C ./flux-repo checkout -b ops-install-podinfo-and-weave-gitops
     cp -R ./flux-repo-src/pr-branch/. ./flux-repo
     git -C ./flux-repo add .
-    git -C ./flux-repo commit -m "add podinfo component"
+    git -C ./flux-repo commit -m "add components for podinfo and weave gitops"
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./flux-repo push origin --all
 
     wait-for-endpoint https://gitea.ocm.dev/api/v1/users/ocm-admin
@@ -388,10 +388,10 @@ function create-pull-request {
         --header 'Content-Type: application/json' \
         --header "Authorization: token $TOKEN" \
         --data-raw '{
-          "title": "Component Install: podinfo",
-          "body": "Adds manifests for podinfo and values.yaml for application configuration.",
+          "title": "Component Install: podinfo and weave-gitops",
+          "body": "Adds manifests for podinfo and weave-gitops",
           "base": "main",
-          "head": "ops-install-podinfo"
+          "head": "ops-install-podinfo-and-weave-gitops"
         }'
 }
 
