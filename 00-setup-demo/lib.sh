@@ -272,6 +272,12 @@ function init-component-repository {
     git -C ./component-repo add .
     git -C ./component-repo commit -m "release podinfo version 6.3.6"
     GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./component-repo push origin -u new-release
+    git -C ./component-repo checkout -b new-config-release
+    rm -rf ./component-repo/src ./component-repo/componentfile.yaml
+    cp -R ./component-repo-src/new-config-branch/. ./component-repo
+    git -C ./component-repo add .
+    git -C ./component-repo commit -m "release podinfo config version"
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" git -C ./component-repo push origin -u new-config-release
 }
 
 function create-webhook {
