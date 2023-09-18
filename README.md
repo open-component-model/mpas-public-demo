@@ -251,6 +251,10 @@ Open the PR we should see a failing validation like this:
 ![failing validation](./docs/images/failing-validation.png)
 ![ignored replicas](./docs/images/ignored-values-file.png)
 
+To find out what the validation error is, we can inspect the corresponding `Validation` object in Git:
+
+![failed validation object in Kubernetes](./docs/images/failed-validation-k8s.png)
+
 Fix the value by editing it directly. You can do this by either checking out the branch and editing it there, or you can
 edit it on the UI by navigating to the branch that the PR is opened from and hit `Edit` on the file.
 Like this: `https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/_edit/branch-1695040282/products/podinfo/values.yaml`
