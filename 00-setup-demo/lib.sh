@@ -102,9 +102,9 @@ function create-registry-certificate-secrets {
         kubectl create namespace "${namespace}" || true
         kubectl create secret generic \
           -n "${namespace}" ocm-registry-tls-certs \
-          --from-file=caFile="${MKCERT_CA}" \
-          --from-file=certFile="./certs/cert.pem" \
-          --from-file=keyFile="./certs/key.pem"
+          --from-file=ca.crt="${MKCERT_CA}" \
+          --from-file=tls.crt="./certs/cert.pem" \
+          --from-file=tls.key="./certs/key.pem"
     done
 }
 
