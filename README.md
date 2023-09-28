@@ -4,9 +4,9 @@
 
 ## High-level demo overview
 
-This demo deploys MPAS (Multi Product Pipeline Automation System), a system that is built on OCM and Flux. It demonstrates how OCM and Flux can be employed to deploy software products into air-gapped environments.  
+This demo deploys MPAS (Multi Product Pipeline Automation System), a system that is built on OCM and Flux. It demonstrates how OCM and Flux can be employed to deploy software products into air-gapped environments.
 
-The demo environment consists of [Gitea](https://about.gitea.com), [Tekton](https://tekton.dev), [Flux](https://fluxcd.io) and the [MPAS](https://github.com/open-component-model/MPAS) and [OCM controllers](https://github.com/open-component-model/ocm-controller). It uses [kind](https://kind.sigs.k8s.io) to host all parts in a local K8s cluster and creates two isolated areas for the software producer and the consumer to simulate a real air-gapped setup. 
+The demo environment consists of [Gitea](https://about.gitea.com), [Tekton](https://tekton.dev), [Flux](https://fluxcd.io) and the [MPAS](https://github.com/open-component-model/MPAS) and [OCM controllers](https://github.com/open-component-model/ocm-controller). It uses [kind](https://kind.sigs.k8s.io) to host all parts in a local K8s cluster and creates two isolated areas for the software producer and the consumer to simulate a real air-gapped setup.
 
 ![workflow](./docs/images/diagram.png)
 
@@ -41,7 +41,7 @@ It uses the custom `Sync` resource to push content into those repositories.
 
 ### [replication-controller](https://github.com/open-component-model/replication-controller)
 
-Responsible to keep a component version in the cluster up-to-date with a version defined by the consumer in the custom `ComponentSubscription` resource. It is possible to use a `semver` constraint, e.g. >=1.0.0 to take care that new released versions are automatically synchronized and updated in the cluster. 
+Responsible to keep a component version in the cluster up-to-date with a version defined by the consumer in the custom `ComponentSubscription` resource. It is possible to use a `semver` constraint, e.g. >=1.0.0 to take care that new released versions are automatically synchronized and updated in the cluster.
 
 
 ### [mpas-project-controller](https://github.com/open-component-model/mpas-project-controller)
@@ -69,7 +69,7 @@ The `software-consumer` organization models an air-gapped scenario where applica
 
 The software consumer organization contains a repository named [ocm-applications](https://gitea.ocm.dev/software-consumer/ocm-applications). During the setup of the demo PRs are created which contain the Kubernetes manifests required to deploy the product component published by the software provider.
 
-Once the pull requests are merged and the controllers generated new resources, Flux will kick in, start reconciling and deploy the component. 
+Once the pull requests are merged and the controllers generated new resources, Flux will kick in, start reconciling and deploy the component.
 
 ![mpas-flow](./docs/images/mpas-flow.png)
 
@@ -79,7 +79,7 @@ We are going to deploy two products: [podinfo](https://github.com/stefanprodan/p
 
 ## Demo walkthrough
 
-The demo is based on step-by-step instructions that are provided to guide you through the process of deploying the demo environment and the products. The scenario simulates actions on both sides, software provider and software consumer:  
+The demo is based on step-by-step instructions that are provided to guide you through the process of deploying the demo environment and the products. The scenario simulates actions on both sides, software provider and software consumer:
 
 1. provider: cut a new release v1.0.0 for product "podinfo" which triggers a CI pipeline in Tekton
 2. provider: verify the release automation process in the Tekton UI
@@ -137,7 +137,7 @@ These objects will be generated via the `mpas-product-controller`.
 
 After the two PRs are merged, give it a minute and the applications should be reconciled.
 
-Once all resources have been applied and reconciled, the Weave-Gitops application can be accessed under https://weave-gitops.ocm.dev. You can log in with 
+Once all resources have been applied and reconciled, the Weave-Gitops application can be accessed under https://weave-gitops.ocm.dev. You can log in with
 
 ```
 username: admin
@@ -174,7 +174,7 @@ podinfo:
   serviceAccountName: default
 ```
 
-Commit the changes to the main branch and wait for it all to be reconciled back into the deployed application. In case you don't see your changes reflected you may ran into a know issue with the demo setup where two Flux repos track the same gitea 
+Commit the changes to the main branch and wait for it all to be reconciled back into the deployed application. In case you don't see your changes reflected you may ran into a know issue with the demo setup where two Flux repos track the same gitea repository.
 
 ### 7. View the configured application
 
@@ -206,7 +206,7 @@ This update will trigger a new PR for the application reconciling a new version:
 
 ![update pr](./docs/images/updated_pr.png)
 
-It contains a diff to the values file back to the version that the vendor ships as default, since we adopted that config for our environment. Most likely 
+It contains a diff to the values file back to the version that the vendor ships as default, since we adopted that config for our environment. Most likely
 you want to keep your changes, so revert that changes by modifying the file on the PR branch. If not, just merge the PR as is. Either way, it
 should result in a reconciliation of the application.
 
@@ -221,6 +221,50 @@ Jump back to https://weave-gitops.ocm.dev to view the rollout of the new release
 Finally, navigate to https://podinfo.ocm.dev which now displays the OCM logo in place of the cuttlefish and the updated application version of 6.3.6.
 
 ![update-ocm](./docs/images/update-ocm.png)
+
+### 13. Provider updates validation and default configuration
+
+The last scenario we will consider is when the provider changes the default configuration and updates the validation.
+In addition to this, the consumer has some values that are ignored.
+
+Let's start by ignoring the `replicas` count in the [values.yaml](https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/_edit/main/products/podinfo/values.yaml) file.
+
+Add an ignore comment next to it like this:
+
+```yaml
+    replicas: 1 #+mpas-ignore
+```
+
+Hit commit.
+
+Now, let's release a new version of podinfo which will contain an update to this value and some additional validation
+rules.
+
+Navigate to the [Provider Repository's Release Page](https://gitea.ocm.dev/software-provider/podinfo-component/releases/new) and create a new release like this:
+
+![configuration-change-release](./docs/images/configuration-change-release.png)
+
+Once done, we should see a new PR on the [Consumer Repository](https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/pulls).
+
+Open the PR we should see a failing validation like this:
+
+![failing validation](./docs/images/failing-validation.png)
+![ignored replicas](./docs/images/ignored-values-file.png)
+
+To find out what the validation error is, we can inspect the corresponding `Validation` object in Git:
+
+![failed validation object in Kubernetes](./docs/images/failed-validation-k8s.png)
+
+Fix the value by editing it directly. You can do this by either checking out the branch and editing it there, or you can
+edit it on the UI by navigating to the branch that the PR is opened from and hit `Edit` on the file.
+Like this: `https://gitea.ocm.dev/software-consumer/mpas-ocm-applications/_edit/branch-1695040282/products/podinfo/values.yaml`
+Assuming the branch is `branch-1695040282`.
+
+Once the change is committed, the validation should pass and we are good to merge the commit.
+
+![passed validation](./docs/images/passed-validation.png)
+
+We can see that the previous commit was failed and there is a new commit that fixed that validation.
 
 ### Conclusion
 

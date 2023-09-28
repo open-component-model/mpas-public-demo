@@ -1,0 +1,31 @@
+apiVersion: meta.mpas.ocm.software/v1alpha1
+kind: ProductDescription
+metadata:
+  name: podinfo
+spec:
+  description: Podinfo
+  pipelines:
+  - name: podinfo
+    targetRoleName: ingress
+    source:
+      name: manifests
+      version: 1.2.0
+    localization:
+      name: config
+      version: 1.2.0
+    configuration:
+      rules:
+        name: config
+        version: 1.2.0
+      readme:
+        name: instructions
+        version: 1.2.0
+    validation:
+      name: validation
+      version: 1.2.0
+  targetRoles:
+  - name: ingress
+    type: kubernetes
+    selector:
+      matchLabels:
+        target.mpas.ocm.software/ingress-enabled: "true"

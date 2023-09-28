@@ -1,0 +1,51 @@
+name: ocm.software/demos/podinfo
+provider:
+  name: ocm.software
+resources:
+- name: image
+  type: ociImage
+  version: 6.3.6-static
+  access:
+    type: ociArtifact
+    imageReference: gitea.ocm.dev/software-provider/podinfo:6.3.6-static
+- name: chart
+  type: ociImage
+  input:
+    type: helm
+    version: 6.3.6
+    path: src/charts/podinfo-6.3.6.tgz
+- name: manifests
+  type: dir
+  input:
+    type: dir
+    path: src/flux
+    compress: true
+- name: config
+  type: file
+  input:
+    type: file
+    path: src/ocm-ctrl/config.yaml
+    compress: true
+- name: validation
+  type: validator.mpas.ocm.software
+  input:
+    type: file
+    path: ./src/validation.rego
+    compress: true
+- name: instructions
+  type: PlainText
+  input:
+    type: file
+    mediaType: text/markdown
+    path: ./src/README.md
+    compress: true
+- name: product-description
+  type: productdescription.mpas.ocm.software
+  input:
+    type: file
+    path: product_description.yaml
+    compress: true
+componentReferences:
+- name: weave-gitops
+  componentName: ocm.software/demos/weave-gitops
+  version: v1.0.0
