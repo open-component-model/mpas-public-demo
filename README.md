@@ -1,4 +1,4 @@
-[![REUSE status](https://api.reuse.software/badge/github.com/open-component-model/demo-secure-delivery)](https://api.reuse.software/info/github.com/open-component-model/demo-secure-delivery)
+[![REUSE status](https://api.reuse.software/badge/github.com/open-component-model/mpas-public-demo)](https://api.reuse.software/info/github.com/open-component-model/mpas-public-demo)
 
 # MPAS with Flux and Open Component Model
 
