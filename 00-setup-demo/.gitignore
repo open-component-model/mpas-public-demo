@@ -3,3 +3,4 @@ certs/
 flux-repo/
 component-repo/
 manifests/cert-manager/cert-manager.yaml
+manifests/external-secrets/external-secrets.yaml
