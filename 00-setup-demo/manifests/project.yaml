@@ -18,6 +18,6 @@ spec:
     owner: software-consumer
     provider: gitea
     visibility: public
-    domain: https://gitea.ocm.dev
+    domain: gitea.ocm.dev
   interval: 1m
   prune: true

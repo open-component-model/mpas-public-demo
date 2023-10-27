@@ -47,14 +47,6 @@ function init-repository {
     flux reconcile source git flux-system
 }
 
-function init-project-infrastructure {
-    echo "initialising project instrastructure"
-    kubectl apply -f ./manifests/service_account.yaml
-    kubectl apply -f ./manifests/project.yaml
-    echo "waiting for project to be Ready"
-    kubectl wait --for=condition=Ready=true Project/ocm-applications -n mpas-system --timeout=60s
-}
-
 function wait-for-endpoint {
     until curl --output /dev/null --silent --fail "$1"; do
         sleep 0.1
@@ -63,8 +55,28 @@ function wait-for-endpoint {
 
 function configure-tls {
     mkdir -p ./certs && rm -f ./certs/*.pem
-    mkcert -install 2>/dev/null
-    mkcert -cert-file=./certs/cert.pem -key-file=./certs/key.pem gitea.ocm.dev weave-gitops.ocm.dev podinfo.ocm.dev ci.ocm.dev events.ci.ocm.dev registry.ocm-system.svc.cluster.local
+    echo -n 'installing cert-manager'
+    kubectl apply -f manifests/cert-manager/cert-manager.yaml
+    kubectl wait --for=condition=Available=True Deployment/cert-manager -n cert-manager --timeout=60s
+    kubectl wait --for=condition=Available=True Deployment/cert-manager-webhook -n cert-manager --timeout=60s
+    kubectl wait --for=condition=Available=True Deployment/cert-manager-cainjector -n cert-manager --timeout=60s
+    echo 'done'
+
+    echo -n 'applying root certificate issuer'
+    kubectl apply -f manifests/cert-manager/cluster_issuer.yaml
+    echo 'done'
+
+    echo -n 'waiting for root certificate to be generated...'
+    kubectl wait --for=condition=Ready=true Certificate/mpas-bootstrap-certificate -n cert-manager --timeout=60s
+    echo 'done'
+
+    kubectl get secret ocm-registry-tls-certs -n cert-manager -o jsonpath="{.data['tls\.crt']}" | base64 -d > ./certs/rootCA.pem
+    kubectl get secret ocm-registry-tls-certs -n cert-manager -o jsonpath="{.data['tls\.crt']}" | base64 -d > ./certs/cert.pem
+    kubectl get secret ocm-registry-tls-certs -n cert-manager -o jsonpath="{.data['tls\.key']}" | base64 -d > ./certs/key.pem
+    echo -n 'installing root certificate into local trust store...'
+    CAROOT=./certs mkcert -install
+
+    echo 'done'
 }
 
 function configure-signing-keys {
@@ -80,6 +92,27 @@ function deploy-gitea {
     kubectl create secret -n gitea tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
 }
 
+function deploy-external-secrets-operator {
+    kubectl apply -f ./manifests/external-secrets/install.yaml
+    kubectl wait --for=condition=Available=true Deployment/external-secrets --timeout=60s
+    kubectl wait --for=condition=Available=true Deployment/external-secrets-cert-controller --timeout=60s
+    kubectl wait --for=condition=Available=true Deployment/external-secrets-webhook --timeout=60s
+
+    # update the default service account so it can create secrets. normally this would be a specific service account
+    kubectl apply -f ./manifests/external-secrets/cluster_role.yaml
+    kubectl apply -f ./manifests/external-secrets/cluster_role_binding.yaml
+
+    # apply the secret replication
+    # apply the secret store
+    kubectl apply -f ./manifests/external-secrets/cluster_secret_store.yaml
+
+    # apply the external secret reconciliation objects
+    kubectl apply -f ./manifests/external-secrets/cluster_external_secret_dockerconfig.yaml
+    kubectl apply -f ./manifests/external-secrets/cluster_external_secret_git.yaml
+    kubectl apply -f ./manifests/external-secrets/cluster_external_secret_ocm_signing.yaml
+    kubectl apply -f ./manifests/external-secrets/cluster_external_secret_ocm-dev-ca.yaml
+}
+
 function create-weave-gitops-component {
     (
         cd weave-gitops/ || return
@@ -89,24 +122,24 @@ function create-weave-gitops-component {
     )
 }
 
-function create-registry-certificate-secrets {
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
-    TMPFILE=$(mktemp)
-    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
-    # pre-create the project namespace so we can apply the certificate secrets immediately.
-    # this is to make it easy on us later not having to patch anything.
-    declare -a namespaces=("ocm-system" "mpas-system" "mpas-ocm-applications")
-    for namespace in "${namespaces[@]}"
-    do
-        # ignore if already exists
-        kubectl create namespace "${namespace}" || true
-        kubectl create secret generic \
-          -n "${namespace}" ocm-registry-tls-certs \
-          --from-file=ca.crt="${MKCERT_CA}" \
-          --from-file=tls.crt="./certs/cert.pem" \
-          --from-file=tls.key="./certs/key.pem"
-    done
-}
+# function create-registry-certificate-secrets {
+#     MKCERT_CA="./certs/rootCA.pem"
+#     TMPFILE=$(mktemp)
+#     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
+#     # pre-create the project namespace so we can apply the certificate secrets immediately.
+#     # this is to make it easy on us later not having to patch anything.
+#     # declare -a namespaces=("ocm-system" "mpas-system" "mpas-ocm-applications")
+#     # for namespace in "${namespaces[@]}"
+#     # do
+#     # ignore if already exists
+#     kubectl create namespace ocm-system || true
+#     kubectl create secret generic \
+#         -n "ocm-system" ocm-registry-tls-certs \
+#         --from-file=ca.crt="${MKCERT_CA}" \
+#         --from-file=tls.crt="./certs/cert.pem" \
+#         --from-file=tls.key="./certs/key.pem"
+#     # done
+# }
 
 # bootstrap will generate a certificate for the registry. Since the user itself doesn't care about it
 # we can ignore this secret for the rest of the components.
@@ -118,7 +151,7 @@ function deploy-mpas-controllers {
         --data '{ "name": "mpas-deploy-token-2w", "scopes": [ "all" ] }')
 
     TOKEN=$(echo "$TOKEN_REQ" | jq -r '.sha1')
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    MKCERT_CA="./certs/rootCA.pem"
     TMPFILE=$(mktemp)
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     # add in the certificates for the controllers
@@ -131,18 +164,17 @@ function deploy-mpas-controllers {
 }
 
 function setup-ocm-system-signing-keys {
-    echo "skip because it will be installed by mpas bootstrap"
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    MKCERT_CA="./certs/rootCA.pem"
     TMPFILE=$(mktemp)
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create namespace ocm-system || true
     kubectl create namespace flux-system || true
     kubectl create namespace mpas-ocm-applications || true
     kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
-    kubectl create secret -n mpas-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
-    kubectl create secret -n mpas-ocm-applications generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    # kubectl create secret -n mpas-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
+    # kubectl create secret -n mpas-ocm-applications generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
     kubectl create secret -n ocm-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
-    kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
+    # kubectl create secret -n flux-system generic ocm-dev-ca --from-file=ca-certificates.crt="$TMPFILE"
     kubectl create secret -n default tls mkcert-tls --cert=./certs/cert.pem --key=./certs/key.pem
 }
 
@@ -155,7 +187,7 @@ function deploy-ingress {
 }
 
 function deploy-tekton {
-    MKCERT_CA="$(mkcert -CAROOT)/rootCA.pem"
+    MKCERT_CA="./certs/rootCA.pem"
     TMPFILE=$(mktemp)
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create ns tekton-pipelines
@@ -222,31 +254,7 @@ function configure-gitea {
             --from-literal=username=ocm-admin \
             --from-literal=password=$TOKEN
 
-    kubectl create ns mpas-system || true
-    kubectl create secret -n mpas-system generic \
-        gitea-registry-credentials \
-            --from-literal=username=ocm-admin \
-            --from-literal=password=$TOKEN
-
-    kubectl create ns mpas-ocm-applications || true
-    kubectl create secret -n mpas-ocm-applications generic \
-        gitea-registry-credentials \
-            --from-literal=username=ocm-admin \
-            --from-literal=password=$TOKEN
-
-    kubectl create secret -n default docker-registry \
-        gitea-registry-credentials \
-            --docker-server=gitea.ocm.dev \
-            --docker-username=ocm-admin \
-            --docker-password=$TOKEN
-
-    kubectl create secret -n mpas-system docker-registry \
-        pull-creds \
-            --docker-server=gitea.ocm.dev \
-            --docker-username=ocm-admin \
-            --docker-password=$TOKEN
-
-    kubectl create secret -n mpas-ocm-applications docker-registry \
+    kubectl create secret -n ocm-system docker-registry \
         pull-creds \
             --docker-server=gitea.ocm.dev \
             --docker-username=ocm-admin \

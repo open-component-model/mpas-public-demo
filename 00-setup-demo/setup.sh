@@ -61,8 +61,11 @@ deploy-gitea
 p "deploying ingress"
 deploy-ingress
 
-p "create registry certificate secrets"
-create-registry-certificate-secrets
+p "installing external-secrets operator"
+deploy-external-secrets-operator
+
+# p "create registry certificate secrets"
+# create-registry-certificate-secrets
 
 p "deploying ocm system signing keys"
 setup-ocm-system-signing-keys

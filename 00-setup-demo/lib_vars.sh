@@ -5,7 +5,7 @@
 
 PRIVATE_REPO_NAME=mpas-ocm-applications
 SIGNING_KEY_NAME=ocm-signing
-MPAS_VERSION="${MPAS_VERSION:-0.3.0}"
+MPAS_VERSION="${MPAS_VERSION:-0.5.2}"
 
 SSH_KEY_NAME=ocm-private-demo-key
 SSH_KEY_PATH=$HOME/.ssh/$SSH_KEY_NAME
