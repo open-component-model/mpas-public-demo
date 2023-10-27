@@ -54,6 +54,12 @@ function wait-for-endpoint {
 }
 
 function configure-tls {
+    CERT_MANAGER_VERSION=${CERT_MANAGER_VERSION:-v1.13.1}
+    if [ ! -e 'manifests/cert-manager/cert-manager.yaml' ]; then
+    echo "fetching cert-manager manifest for version ${CERT_MANAGER_VERSION}"
+    curl -L https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml -o manifests/cert-manager/cert-manager.yaml
+    fi
+
     mkdir -p ./certs && rm -f ./certs/*.pem
     echo -n 'installing cert-manager'
     kubectl apply -f manifests/cert-manager/cert-manager.yaml
@@ -121,25 +127,6 @@ function create-weave-gitops-component {
         make push
     )
 }
-
-# function create-registry-certificate-secrets {
-#     MKCERT_CA="./certs/rootCA.pem"
-#     TMPFILE=$(mktemp)
-#     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
-#     # pre-create the project namespace so we can apply the certificate secrets immediately.
-#     # this is to make it easy on us later not having to patch anything.
-#     # declare -a namespaces=("ocm-system" "mpas-system" "mpas-ocm-applications")
-#     # for namespace in "${namespaces[@]}"
-#     # do
-#     # ignore if already exists
-#     kubectl create namespace ocm-system || true
-#     kubectl create secret generic \
-#         -n "ocm-system" ocm-registry-tls-certs \
-#         --from-file=ca.crt="${MKCERT_CA}" \
-#         --from-file=tls.crt="./certs/cert.pem" \
-#         --from-file=tls.key="./certs/key.pem"
-#     # done
-# }
 
 # bootstrap will generate a certificate for the registry. Since the user itself doesn't care about it
 # we can ignore this secret for the rest of the components.
