@@ -99,16 +99,16 @@ function deploy-gitea {
 }
 
 function deploy-external-secrets-operator {
-    EXTERNAL_SECRETS_VERSION=${EXTERNAL_SECRETS_VERSION:-v0.9.7}
-    if [ ! -e 'manifests/external-secrets/external-secrets.yaml' ]; then
-    echo "fetching external-secrets manifest for version ${EXTERNAL_SECRETS_VERSION}"
-    curl -L https://github.com/external-secrets/external-secrets/releases/download/${EXTERNAL_SECRETS_VERSION}/external-secrets.yaml -o manifests/external-secrets/external-secrets.yaml
-    fi
+    # EXTERNAL_SECRETS_VERSION=${EXTERNAL_SECRETS_VERSION:-v0.9.7}
+    # if [ ! -e 'manifests/external-secrets/external-secrets.yaml' ]; then
+    # echo "fetching external-secrets manifest for version ${EXTERNAL_SECRETS_VERSION}"
+    # curl -L https://github.com/external-secrets/external-secrets/releases/download/${EXTERNAL_SECRETS_VERSION}/external-secrets.yaml -o manifests/external-secrets/external-secrets.yaml
+    # fi
 
-    kubectl apply -f ./manifests/external-secrets/external-secrets.yaml
-    kubectl wait --for=condition=Available=true Deployment/external-secrets --timeout=60s
-    kubectl wait --for=condition=Available=true Deployment/external-secrets-cert-controller --timeout=60s
-    kubectl wait --for=condition=Available=true Deployment/external-secrets-webhook --timeout=60s
+    # kubectl apply -f ./manifests/external-secrets/external-secrets.yaml
+    # kubectl wait --for=condition=Available=true Deployment/external-secrets --timeout=60s
+    # kubectl wait --for=condition=Available=true Deployment/external-secrets-cert-controller --timeout=60s
+    # kubectl wait --for=condition=Available=true Deployment/external-secrets-webhook --timeout=60s
 
     # update the default service account so it can create secrets. normally this would be a specific service account
     kubectl apply -f ./manifests/external-secrets/cluster_role.yaml
