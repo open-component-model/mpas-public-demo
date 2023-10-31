@@ -61,9 +61,6 @@ deploy-gitea
 p "deploying ingress"
 deploy-ingress
 
-p "create registry certificate secrets"
-create-registry-certificate-secrets
-
 p "deploying ocm system signing keys"
 setup-ocm-system-signing-keys
 
@@ -75,6 +72,9 @@ configure-ssh
 
 p "deploying mpas controllers"
 deploy-mpas-controllers
+
+p "creating cluster external secrets"
+deploy-external-secrets-operator
 
 p "deploy tekton"
 deploy-tekton
