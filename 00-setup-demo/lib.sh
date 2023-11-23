@@ -242,9 +242,13 @@ function configure-gitea {
 
     echo password | docker login gitea.ocm.dev -u ocm-admin --password-stdin
 
+    MKCERT_CA="./certs/rootCA.pem"
+    TMPFILE=$(mktemp)
+    cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create secret -n ocm-system generic \
         gitea-registry-credentials \
             --from-literal=username=ocm-admin \
+            --from-file=caFile=$TMPFILE \
             --from-literal=password=$TOKEN
 
     kubectl create secret -n ocm-system docker-registry \
