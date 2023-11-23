@@ -162,7 +162,7 @@ function setup-ocm-system-signing-keys {
     cat ./ca-certs/alpine-ca.crt "$MKCERT_CA" > "$TMPFILE"
     kubectl create namespace ocm-system || true
     kubectl create namespace flux-system || true
-    kubectl create namespace mpas-ocm-applications || true
+    # kubectl create namespace mpas-ocm-applications || true
     kubectl create secret -n ocm-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
     # kubectl create secret -n mpas-system generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
     # kubectl create secret -n mpas-ocm-applications generic ocm-signing --from-file=$SIGNING_KEY_NAME=./signing-keys/$SIGNING_KEY_NAME.rsa.pub
