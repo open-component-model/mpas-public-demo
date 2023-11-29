@@ -7,5 +7,6 @@ metadata:
     target.mpas.ocm.software/ingress-enabled: "true" # DO NOT CHANGE. expected by the component for target selection.
 spec:
   type: kubernetes
+  interval: 10s
   access:
     targetNamespace: default
