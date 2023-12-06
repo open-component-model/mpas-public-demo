@@ -17,9 +17,6 @@ spec:
       rules:
         name: config
         version: 1.2.0
-      readme:
-        name: instructions
-        version: 1.2.0
     schema:
       name: schema
       version: 1.2.0

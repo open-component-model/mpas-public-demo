@@ -27,17 +27,10 @@ resources:
     path: src/ocm-ctrl/config.yaml
     compress: true
 - name: schema
-  type: plaintext
-  input:
-    type: file
-    path: ./src/schema.cue
-    compress: true
-- name: instructions
   type: PlainText
   input:
     type: file
-    mediaType: text/markdown
-    path: ./src/README.md
+    path: ./src/schema.cue
     compress: true
 - name: product-description
   type: productdescription.mpas.ocm.software
