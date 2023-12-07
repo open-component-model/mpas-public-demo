@@ -49,6 +49,10 @@ gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.24.
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.24.0
 ghcr.io/open-component-model/ocm:0.3.0-rc.2
+quay.io/jetstack/cert-manager-cainjector:v1.13.1
+quay.io/jetstack/cert-manager-controller:v1.13.1
+quay.io/jetstack/cert-manager-webhook:v1.13.1
+ghcr.io/external-secrets/external-secrets:v0.9.9
 )
 
 preloadimages=(

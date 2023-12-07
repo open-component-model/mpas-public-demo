@@ -26,18 +26,11 @@ resources:
     type: file
     path: src/ocm-ctrl/config.yaml
     compress: true
-- name: validation
-  type: validator.mpas.ocm.software
-  input:
-    type: file
-    path: ./src/validation.rego
-    compress: true
-- name: instructions
+- name: schema
   type: PlainText
   input:
     type: file
-    mediaType: text/markdown
-    path: ./src/README.md
+    path: ./src/schema.cue
     compress: true
 - name: product-description
   type: productdescription.mpas.ocm.software
