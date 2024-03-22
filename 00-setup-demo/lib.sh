@@ -56,8 +56,8 @@ function wait-for-endpoint {
 function configure-tls {
     CERT_MANAGER_VERSION=${CERT_MANAGER_VERSION:-v1.13.1}
     if [ ! -e 'manifests/cert-manager/cert-manager.yaml' ]; then
-    echo "fetching cert-manager manifest for version ${CERT_MANAGER_VERSION}"
-    curl -L https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml -o manifests/cert-manager/cert-manager.yaml
+        echo "fetching cert-manager manifest for version ${CERT_MANAGER_VERSION}"
+        curl -L https://github.com/cert-manager/cert-manager/releases/download/${CERT_MANAGER_VERSION}/cert-manager.yaml -o manifests/cert-manager/cert-manager.yaml
     fi
 
     mkdir -p ./certs && rm -f ./certs/*.pem
