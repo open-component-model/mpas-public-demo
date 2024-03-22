@@ -5,7 +5,7 @@
 
 PRIVATE_REPO_NAME=mpas-ocm-applications
 SIGNING_KEY_NAME=ocm-signing
-MPAS_VERSION="${MPAS_VERSION:-0.6.1}"
+MPAS_VERSION="${MPAS_VERSION:-0.6.3}"
 
 SSH_KEY_NAME=ocm-private-demo-key
 SSH_KEY_PATH=$HOME/.ssh/$SSH_KEY_NAME
@@ -48,7 +48,7 @@ gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.24.0
-ghcr.io/open-component-model/ocm:0.3.0-rc.2
+ghcr.io/open-component-model/ocm:latest
 quay.io/jetstack/cert-manager-cainjector:v1.13.1
 quay.io/jetstack/cert-manager-controller:v1.13.1
 quay.io/jetstack/cert-manager-webhook:v1.13.1
@@ -81,7 +81,7 @@ gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/controller:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/eventlistenersink:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/interceptors:v0.24.0
 gcr.io/tekton-releases/github.com/tektoncd/triggers/cmd/webhook:v0.24.0
-ghcr.io/open-component-model/ocm:0.3.0-rc.2
+ghcr.io/open-component-model/ocm:latest
 )
 
 helm_mac_instructions="brew install helm"
