@@ -5,7 +5,7 @@
 
 PRIVATE_REPO_NAME=mpas-ocm-applications
 SIGNING_KEY_NAME=ocm-signing
-MPAS_VERSION="${MPAS_VERSION:-0.7.0}"
+MPAS_VERSION="${MPAS_VERSION:-0.8.0}"
 
 SSH_KEY_NAME=ocm-private-demo-key
 SSH_KEY_PATH=$HOME/.ssh/$SSH_KEY_NAME
@@ -59,10 +59,10 @@ preloadimages=(
 ghcr.io/open-component-model/podinfo:6.3.5-static
 ghcr.io/open-component-model/podinfo:6.3.6-static
 ghcr.io/weaveworks/wego-app:v0.24.0
-ghcr.io/fluxcd/helm-controller:v0.33.0
-ghcr.io/fluxcd/kustomize-controller:v1.0.0-rc.3
-ghcr.io/fluxcd/notification-controller:v1.0.0-rc.3
-ghcr.io/fluxcd/source-controller:v1.0.0-rc.3
+ghcr.io/fluxcd/helm-controller:v1.0.1
+ghcr.io/fluxcd/kustomize-controller:v1.3.0
+ghcr.io/fluxcd/notification-controller:v1.3.0
+ghcr.io/fluxcd/source-controller:v1.3.0
 gitea/gitea:1.19.3
 registry.k8s.io/ingress-nginx/kube-webhook-certgen:v20230312-helm-chart-4.5.2-28-g66a760794
 registry.k8s.io/ingress-nginx/controller:v1.7.1
